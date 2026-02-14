@@ -5,3 +5,4 @@ __pycache__/
 cache.sqlite
 .DS_Store
 *_results.csv
+input_records.csv
