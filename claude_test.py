@@ -12,10 +12,11 @@ if not api_key:
 
 # Create client
 client = anthropic.Anthropic(api_key=api_key)
+MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
 
 # Make API call
 response = client.messages.create(
-    model="claude-haiku-4-5",
+    model=MODEL,
     max_tokens=200,
     temperature=0,
     messages=[
@@ -37,5 +38,5 @@ raw = response.content[0].text.strip()
 # If the model wraps JSON in ```json fences, remove them:
 raw = raw.removeprefix("```json").removesuffix("```").strip()
 
-data = json.loads(raw) #will raise if invalid JSON
+data = json.loads(raw) # will raise if invalid JSON
 print(data)
