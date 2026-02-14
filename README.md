@@ -1,15 +1,22 @@
 # Role Taxonomy Ensemble Engine
 
-Hierarchical LLM-powered role taxonomy classifier for multi-field role harmonization.
+A hierarchical, LLM-powered role taxonomy classifier for multi-field role harmonization in enterprise datasets.
+
+This system classifies free-form role titles into a controlled canonical taxonomy using a multi-field ensemble approach with persistent caching to minimize API cost.
+
+---
 
 ## Features
 
-- Multi-field classification (role_title, job_title, vendor_role)
+- Multi-field classification (`role_title`, `job_title`, `vendor_role`)
 - Top-3 candidate extraction per field
-- Weighted ensemble aggregation
 - Family-first hierarchical scoring
+- Weighted ensemble aggregation
 - Confidence + margin-based review logic
+- Versioned persistent SQLite cache
 - CSV input/output pipeline
+
+---
 
 ## Project Structure
 
@@ -23,24 +30,34 @@ Hierarchical LLM-powered role taxonomy classifier for multi-field role harmoniza
 - experiments/
 -> claude_test.py
 
+
+---
+
 ## Taxonomy
 
 Canonical roles and family mappings are stored in `taxonomy_roles.csv`.
-This allows taxonomy updates without modifying source code.
 
+This allows taxonomy updates without modifying application code.
+
+Family classification is deterministic via mapping from canonical roles.
+
+---
 
 ## Caching & Cost Optimization
 
-This system uses a persistent SQLite cache (`cache.sqlite`) to avoid repeated LLM calls.
+The system uses a persistent SQLite cache (`cache.sqlite`) to avoid repeated LLM calls.
 
 - Each unique normalized term is scored once.
 - Results are versioned by:
-  - Model name (`ANTHROPIC_MODEL`)
+  - Model (`ANTHROPIC_MODEL`)
   - Taxonomy version (`TAXONOMY_VERSION`)
   - Prompt version (`PROMPT_VERSION`)
-- If any of those change, cache invalidation occurs automatically.
+- Changing any version triggers automatic cache invalidation.
 
-This reduces API usage from O(records × fields) to O(unique_terms).
+This reduces API usage from: O(records × fields) to: O(unique_terms).
+
+
+---
 
 ## Configuration
 
@@ -52,6 +69,28 @@ Configuration is externalized via environment variables:
 - `PROMPT_VERSION`
 
 This enables reproducibility and model switching without code changes.
+
+---
+
+## How to Run
+
+1. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Create a .env file with:
+ANTHROPIC_API_KEY=your_key_here
+ANTHROPIC_MODEL=claude-haiku-4-5
+TAXONOMY_VERSION=v1
+PROMPT_VERSION=v1
+
+3. Run:
+```bash
+python src/role_taxonomy_ensemble.py
+```
+Output will be written to a CSV file in the project root.
 
 ## Architecture
 
