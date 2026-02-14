@@ -187,6 +187,7 @@ def cache_connect() -> sqlite3.Connection:
     return conn
 
 def cache_get(conn: sqlite3.Connection, term: str) -> Optional[Dict[str, Any]]:
+    print(f"[CACHE HIT] {term}") #temp test
     norm = normalize_term(term)
     cur = conn.execute("""
         SELECT result_json
@@ -234,6 +235,7 @@ def classify_field(
         }
 
     # 2) Call API (cache miss)
+    print(f"[CACHE MISS -> API] {field_text}") #temp test
     prompt = build_field_prompt(field_name, field_text)
 
     resp = client.messages.create(

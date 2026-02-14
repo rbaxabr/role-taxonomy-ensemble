@@ -1,0 +1,51 @@
+username,role_title,job_title,vendor_role
+u1001,Software Engineer,Tester,Sr Android Developer
+u1002,Technical Program Manager,PM,TPM - Platform
+u1003,Data Scientist,Machine Learning Engineer,ML Engineer (Applied)
+u1004,SRE,Systems Engineer,Site Reliability Engineer
+u1005,Backend Developer,Software Engineer,Java Backend Engineer
+u1006,QA Analyst,Quality Engineer,Automation Tester
+u1007,Cloud Engineer,DevOps Engineer,AWS Infrastructure Engineer
+u1008,Product Manager,PM,Product Owner
+u1009,Data Engineer,BI Developer,ETL Engineer
+u1010,Security Analyst,Information Security Analyst,Cybersecurity Engineer
+u1011,Full Stack Developer,Frontend Engineer,React Developer
+u1012,System Administrator,Systems Engineer,IT Admin
+u1013,Mobile Developer,iOS Engineer,iOS App Developer
+u1014,Machine Learning Engineer,Data Scientist,ML Platform Engineer
+u1015,Program Manager,Technical PM,TPM - Infrastructure
+u1016,Solutions Architect,Solutions Engineer,Pre-Sales Engineer
+u1017,Network Engineer,Infrastructure Engineer,Network Operations Engineer
+u1018,Embedded Engineer,Firmware Developer,Embedded Software Engineer
+u1019,QA Lead,Quality Manager,Test Automation Lead
+u1020,Software Engineer,Full Stack Engineer,Backend Engineer
+u2001,Software Engineer,Developer,Sr Android Developer
+u2002,Software Engineer,Tester,Sr Android Developer
+u2003,Software Engineer,QA Analyst,Sr Android Developer
+u2004,Software Engineer,QA Analyst,SR ANDROID DEVELOPER
+u2005,Software Engineer,QA Analyst,Sr   Android   Developer
+u2006,Backend Developer,Software Engineer,Java Backend Engineer
+u2007,Backend Developer,Software Engineer,Java Backend Engineer
+u2008,Backend Developer,Software Engineer,Java Backend Engineer
+u2009,Cloud Engineer,DevOps Engineer,AWS Infrastructure Engineer
+u2010,Cloud Engineer,DevOps Engineer,AWS Infrastructure Engineer
+u3001,Software Engineer,Developer,Android App Developer
+u3002,Software Engineer,Developer,iOS App Developer
+u3003,Software Engineer,Developer,Kotlin Android Engineer
+u3004,Software Engineer,Developer,Swift iOS Engineer
+u3005,Frontend Developer,Software Engineer,React Frontend Engineer
+u3006,Frontend Developer,Software Engineer,UI Engineer (React)
+u3007,Backend Developer,Software Engineer,Python Backend Engineer
+u3008,Backend Developer,Software Engineer,Go Backend Engineer
+u3009,Platform Engineer,DevOps Engineer,Kubernetes Platform Engineer
+u3010,Platform Engineer,DevOps Engineer,Infra Engineer (Kubernetes)
+u3011,Data Engineer,BI Developer,dbt Analytics Engineer
+u3012,Data Engineer,BI Developer,Looker BI Engineer
+u3013,Data Scientist,Analyst,Applied Scientist
+u3014,Machine Learning Engineer,Data Scientist,LLM Engineer
+u3015,SRE,Systems Engineer,Observability Engineer
+u3016,Security Engineer,Security Analyst,AppSec Engineer
+u3017,Network Engineer,Infrastructure Engineer,Network Operations Specialist
+u3018,System Administrator,IT Admin,Windows Systems Administrator
+u3019,QA Engineer,Tester,Performance Test Engineer
+u3020,QA Engineer,Tester,SDET - Automation Engineer

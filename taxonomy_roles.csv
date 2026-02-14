@@ -1,0 +1,43 @@
+canonical_role,family
+Backend Engineer,Software Engineering
+Frontend Engineer,Software Engineering
+Full Stack Engineer,Software Engineering
+Mobile Engineer,Software Engineering
+Platform Engineer,Software Engineering
+DevOps Engineer,Software Engineering
+Embedded Software Engineer,Software Engineering
+UI Engineer,Software Engineering
+
+QA Engineer (Manual),Quality Engineering
+QA Engineer (Automation),Quality Engineering
+SDET (Software Development Engineer in Test),Quality Engineering
+Performance Test Engineer,Quality Engineering
+
+Data Engineer,Data / ML
+Analytics Engineer,Data / ML
+BI Engineer,Data / ML
+Data Analyst,Data / ML
+Data Scientist,Data / ML
+Machine Learning Engineer,Data / ML
+MLOps Engineer,Data / ML
+Data Warehouse Engineer,Data / ML
+
+Site Reliability Engineer (SRE),Infrastructure / Systems
+Cloud Infrastructure Engineer,Infrastructure / Systems
+Systems Engineer,Infrastructure / Systems
+Systems Administrator,Infrastructure / Systems
+Network Engineer,Infrastructure / Systems
+Database Administrator (DBA),Infrastructure / Systems
+IT Support Engineer,Infrastructure / Systems
+Solutions Engineer,Infrastructure / Systems
+
+Security Engineer,Security
+Security Analyst,Security
+
+Technical Program Manager (TPM),Program / Product
+Program Manager,Program / Product
+Product Manager,Program / Product
+Technical Writer,Program / Product
+
+UX Designer,Design
+Product Designer,Design
