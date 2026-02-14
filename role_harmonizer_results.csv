@@ -1,7 +1,0 @@
-input_title,role_family,specialization,level,location,confidence,needs_review,error
-Senior QA Eng - Bangalore - Vendor X,Quality Engineering,,4,Bangalore,0.95,False,
-Tester - India,Quality Engineering,,,India,0.85,True,
-QAT Eng (Automation) - SF Bay Area,Quality Engineering,Automation,,SF Bay Area,0.95,False,
-Quality Engineer - Seattle,Quality Engineering,,,Seattle,0.95,False,
-QA Lead - London,Quality Engineering,,5,London,0.95,False,
-SDET - Remote - Vendor Y,Quality Engineering,Automation,,Remote,0.95,False,
