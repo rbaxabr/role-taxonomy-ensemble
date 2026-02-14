@@ -10,24 +10,51 @@ Hierarchical LLM-powered role taxonomy classifier for multi-field role harmoniza
 - Confidence + margin-based review logic
 - CSV input/output pipeline
 
+## Caching & Cost Optimization
+
+This system uses a persistent SQLite cache (`cache.sqlite`) to avoid repeated LLM calls.
+
+- Each unique normalized term is scored once.
+- Results are versioned by:
+  - Model name (`ANTHROPIC_MODEL`)
+  - Taxonomy version (`TAXONOMY_VERSION`)
+  - Prompt version (`PROMPT_VERSION`)
+- If any of those change, cache invalidation occurs automatically.
+
+This reduces API usage from O(records × fields) to O(unique_terms).
+
+## Configuration
+
+Configuration is externalized via environment variables:
+
+- `ANTHROPIC_API_KEY`
+- `ANTHROPIC_MODEL`
+- `TAXONOMY_VERSION`
+- `PROMPT_VERSION`
+
+This enables reproducibility and model switching without code changes.
+
 ## Architecture
 
 See system design diagram below.
 
 ```mermaid
 flowchart TD
-  A["Input records: username, role_title, job_title, vendor_role"] --> B["Per-field classifier (LLM)"]
+  A["Input CSV<br/>username, role_title, job_title, vendor_role"] --> B["Extract unique normalized terms"]
 
-  B --> C1["role_title: top-k canonical roles + confidence"]
-  B --> C2["job_title: top-k canonical roles + confidence"]
-  B --> C3["vendor_role: top-k canonical roles + confidence"]
+  B --> C["Cache Lookup (SQLite)"]
+  C -->|Cache Hit| D["Use cached candidates"]
+  C -->|Cache Miss| E["LLM Call (Claude)"]
 
-  C1 --> D["Family-first aggregation"]
-  C2 --> D
-  C3 --> D
+  E --> F["Store result in cache (versioned)"]
+  F --> D
 
-  D --> E["Decision logic"]
-  E --> F["Final family"]
-  F --> G["Select canonical role within family"]
-  G --> H["Output CSV + diagnostics"]
+  D --> G["Family-first aggregation"]
+  G --> H["Select canonical role within family"]
+
+  H --> I["Decision logic<br/>confidence + margin thresholds"]
+  I --> J["Output CSV + diagnostics"]
+
+  K["Environment Config<br/>MODEL, TAXONOMY_VERSION, PROMPT_VERSION"] --> E
+  K --> C
 ```
