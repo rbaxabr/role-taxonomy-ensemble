@@ -8,7 +8,10 @@ from dotenv import load_dotenv
 import anthropic
 
 # ---------- Config ----------
-MODEL = "claude-haiku-4-5"  # cheap + fast for learning
+# ---- Config from environment ----
+MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+TAXONOMY_VERSION = os.getenv("TAXONOMY_VERSION", "v1")
+PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v1")
 MAX_TOKENS = 250
 TEMPERATURE = 0
 CONFIDENCE_THRESHOLD = 0.90  # below this -> needs_review
@@ -18,6 +21,12 @@ ALLOWED_ROLE_FAMILIES = [
     "Quality Engineering",
     "Program Management",
     "Data Engineering",
+    "ML Engineering",
+    "Technical Program Management",
+    "Site Reliability Engineering",
+    "Security Engineering",
+    "Data Science",
+    "Solutions Engineering"
 ]
 
 # Titles to test (you can expand this list)

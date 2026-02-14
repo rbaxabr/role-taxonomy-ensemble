@@ -7,8 +7,13 @@ from typing import Dict, Any, List, Optional, Tuple
 from dotenv import load_dotenv
 import anthropic
 
+import sqlite3
+from datetime import datetime
+
 # ------------------- Config -------------------
-MODEL = "claude-haiku-4-5"
+MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+TAXONOMY_VERSION = os.getenv("TAXONOMY_VERSION", "v1")
+PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v1")
 MAX_TOKENS = 600
 TEMPERATURE = 0
 
@@ -70,8 +75,7 @@ CANONICAL_TO_FAMILY = {
     "Backend Engineer": "Software Engineering",
     "Frontend Engineer": "Software Engineering",
     "Full Stack Engineer": "Software Engineering",
-    "Mobile Engineer (Android)": "Software Engineering",
-    "Mobile Engineer (iOS)": "Software Engineering",
+    "Mobile Engineer": "Software Engineering",
     "Platform Engineer": "Software Engineering",
     "DevOps Engineer": "Software Engineering",
     "Embedded Software Engineer": "Software Engineering",
@@ -162,8 +166,74 @@ def build_field_prompt(field_name: str, field_text: str) -> str:
         f'Now classify field="{field_name}" text="{field_text}".'
     )
 
+def normalize_term(s: str) -> str:
+    return " ".join((s or "").strip().lower().split())
 
-def classify_field(client: anthropic.Anthropic, field_name: str, field_text: str) -> Dict[str, Any]:
+CACHE_DB = "cache.sqlite"
+
+def cache_connect() -> sqlite3.Connection:
+    conn = sqlite3.connect(CACHE_DB)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS term_cache (
+            norm_term TEXT NOT NULL,
+            model TEXT NOT NULL,
+            taxonomy_version TEXT NOT NULL,
+            prompt_version TEXT NOT NULL,
+            result_json TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            PRIMARY KEY (norm_term, model, taxonomy_version, prompt_version)
+        )
+    """)
+    return conn
+
+def cache_get(conn: sqlite3.Connection, term: str) -> Optional[Dict[str, Any]]:
+    norm = normalize_term(term)
+    cur = conn.execute("""
+        SELECT result_json
+        FROM term_cache
+        WHERE norm_term = ? AND model = ? AND taxonomy_version = ? AND prompt_version = ?
+    """, (norm, MODEL, TAXONOMY_VERSION, PROMPT_VERSION))
+    row = cur.fetchone()
+    if not row:
+        return None
+    return json.loads(row[0])
+
+def cache_set(conn: sqlite3.Connection, term: str, result: Dict[str, Any]) -> None:
+    norm = normalize_term(term)
+    conn.execute("""
+        INSERT OR REPLACE INTO term_cache
+        (norm_term, model, taxonomy_version, prompt_version, result_json, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        norm,
+        MODEL,
+        TAXONOMY_VERSION,
+        PROMPT_VERSION,
+        json.dumps(result),
+        datetime.utcnow().isoformat()
+    ))
+    conn.commit()
+
+def classify_field(
+    conn: sqlite3.Connection,
+    client: anthropic.Anthropic,
+    field_name: str,
+    field_text: str
+) -> Dict[str, Any]:
+
+    # 1) Cache lookup first
+    cached = cache_get(conn, field_text)
+    if cached is not None:
+        return {
+            "field": field_name,
+            "text": field_text,
+            "candidates": cached.get("candidates", []),
+            "level": cached.get("level"),
+            "specialization": cached.get("specialization"),
+            "error": cached.get("error"),
+        }
+
+    # 2) Call API (cache miss)
     prompt = build_field_prompt(field_name, field_text)
 
     resp = client.messages.create(
@@ -176,7 +246,7 @@ def classify_field(client: anthropic.Anthropic, field_name: str, field_text: str
     raw = resp.content[0].text
     data, err = parse_json_safely(raw)
 
-    result = {
+    result: Dict[str, Any] = {
         "field": field_name,
         "text": field_text,
         "candidates": [],
@@ -187,9 +257,16 @@ def classify_field(client: anthropic.Anthropic, field_name: str, field_text: str
 
     if err:
         result["error"] = err
+        payload = {
+            "candidates": [],
+            "level": None,
+            "specialization": None,
+            "error": err,
+        }
+        cache_set(conn, field_text, payload)
         return result
 
-    # candidates
+    # Parse candidates
     cands = data.get("candidates", [])
     cleaned: List[Dict[str, Any]] = []
     if isinstance(cands, list):
@@ -207,7 +284,7 @@ def classify_field(client: anthropic.Anthropic, field_name: str, field_text: str
     cleaned.sort(key=lambda x: x["confidence"], reverse=True)
     result["candidates"] = cleaned[:3]
 
-    # level + specialization
+    # Parse level & specialization
     lvl = data.get("level")
     spec = data.get("specialization")
     if isinstance(lvl, int) and (1 <= lvl <= 5):
@@ -215,8 +292,15 @@ def classify_field(client: anthropic.Anthropic, field_name: str, field_text: str
     if isinstance(spec, str) and spec.strip():
         result["specialization"] = spec.strip()
 
-    return result
+    payload = {
+        "candidates": result["candidates"],
+        "level": result["level"],
+        "specialization": result["specialization"],
+        "error": None,
+    }
+    cache_set(conn, field_text, payload)
 
+    return result
 
 def aggregate_candidates(per_field: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     """
@@ -401,6 +485,7 @@ def load_records_from_csv(path: str) -> List[Dict[str, str]]:
 # ------------------- Main -------------------
 def main() -> None:
     load_dotenv()
+    conn = cache_connect()
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise ValueError("Missing ANTHROPIC_API_KEY in .env")
@@ -419,7 +504,7 @@ def main() -> None:
 
         for field_name in ["role_title", "job_title", "vendor_role"]:
             text = (rec.get(field_name) or "").strip()
-            res = classify_field(client, field_name, text) if text else {
+            res = classify_field(conn, client, field_name, text) if text else {
                 "field": field_name, "text": text, "candidates": [], "level": None, "specialization": None, "error": None
             }
             per_field[field_name] = res
@@ -461,9 +546,9 @@ def main() -> None:
             "final_specialization": final_spec,
 
             # Transparency / auditability
-            "role_title_candidates": per_field["role_title"]["candidates"],
-            "job_title_candidates": per_field["job_title"]["candidates"],
-            "vendor_role_candidates": per_field["vendor_role"]["candidates"],
+            "role_title_candidates": json.dumps(per_field["role_title"]["candidates"]),
+            "job_title_candidates": json.dumps(per_field["job_title"]["candidates"]),
+            "vendor_role_candidates": json.dumps(per_field["vendor_role"]["candidates"]),
 
             # Debug
             "errors": " | ".join(errors) if errors else "",
