@@ -3,12 +3,31 @@
 Hierarchical LLM-powered role taxonomy classifier for multi-field role harmonization.
 
 ## Features
+
 - Multi-field classification (role_title, job_title, vendor_role)
 - Top-3 candidate extraction per field
 - Weighted ensemble aggregation
 - Family-first hierarchical scoring
 - Confidence + margin-based review logic
 - CSV input/output pipeline
+
+## Project Structure
+
+role-taxonomy-ensemble/
+README.md
+requirements.txt
+taxonomy_roles.csv
+input_records.csv
+src/
+role_taxonomy_ensemble.py
+experiments/
+claude_test.py
+
+## Taxonomy
+
+Canonical roles and family mappings are stored in `taxonomy_roles.csv`.
+This allows taxonomy updates without modifying source code.
+
 
 ## Caching & Cost Optimization
 
