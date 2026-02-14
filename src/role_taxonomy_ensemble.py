@@ -17,6 +17,24 @@ PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v1")
 MAX_TOKENS = 600
 TEMPERATURE = 0
 
+# Taxonomy loader
+TAXONOMY_CSV = "taxonomy_roles.csv"
+
+def load_taxonomy(path: str) -> Tuple[List[str], Dict[str, str]]:
+    roles: List[str] = []
+    mapping: Dict[str, str] = {}
+    with open(path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            role = (row.get("canonical_role") or "").strip()
+            fam = (row.get("family") or "").strip()
+            if role and fam:
+                roles.append(role)
+                mapping[role] = fam
+    # de-duplicate while preserving order
+    roles = list(dict.fromkeys(roles))
+    return roles, mapping
+
 # Weighted trust in each field (tune later)
 FIELD_WEIGHTS = {
     "role_title": 1/3,
@@ -31,87 +49,9 @@ MIN_MARGIN = 0.10           # if top-2 too close -> review
 
 OUTPUT_CSV = "role_taxonomy_ensemble_results.csv"
 
-# Canonical roles (v1: ~30)
-CANONICAL_ROLES = [
-    "Backend Engineer",
-    "Frontend Engineer",
-    "Full Stack Engineer",
-    "Mobile Engineer",
-    "Platform Engineer",
-    "DevOps Engineer",
-    "Embedded Software Engineer",
-
-    "QA Engineer (Manual)",
-    "QA Engineer (Automation)",
-    "SDET (Software Development Engineer in Test)",
-    "Performance Test Engineer",
-
-    "Data Engineer",
-    "Analytics Engineer",
-    "BI Engineer",
-    "Data Analyst",
-    "Data Scientist",
-    "Machine Learning Engineer",
-    "MLOps Engineer",
-
-    "Site Reliability Engineer (SRE)",
-    "Cloud Infrastructure Engineer",
-    "Systems Engineer",
-    "Systems Administrator",
-    "Network Engineer",
-
-    "Security Engineer",
-    "Security Analyst",
-
-    "Technical Program Manager (TPM)",
-    "Program Manager",
-    "Product Manager",
-    "Solutions Engineer",
-]
-
-# Family mapping (deterministic, not inferred)
-CANONICAL_TO_FAMILY = {
-    # Software engineering
-    "Backend Engineer": "Software Engineering",
-    "Frontend Engineer": "Software Engineering",
-    "Full Stack Engineer": "Software Engineering",
-    "Mobile Engineer": "Software Engineering",
-    "Platform Engineer": "Software Engineering",
-    "DevOps Engineer": "Software Engineering",
-    "Embedded Software Engineer": "Software Engineering",
-
-    # Quality
-    "QA Engineer (Manual)": "Quality Engineering",
-    "QA Engineer (Automation)": "Quality Engineering",
-    "SDET (Software Development Engineer in Test)": "Quality Engineering",
-    "Performance Test Engineer": "Quality Engineering",
-
-    # Data/ML
-    "Data Engineer": "Data / ML",
-    "Analytics Engineer": "Data / ML",
-    "BI Engineer": "Data / ML",
-    "Data Analyst": "Data / ML",
-    "Data Scientist": "Data / ML",
-    "Machine Learning Engineer": "Data / ML",
-    "MLOps Engineer": "Data / ML",
-
-    # Infra / systems
-    "Site Reliability Engineer (SRE)": "Infrastructure / Systems",
-    "Cloud Infrastructure Engineer": "Infrastructure / Systems",
-    "Systems Engineer": "Infrastructure / Systems",
-    "Systems Administrator": "Infrastructure / Systems",
-    "Network Engineer": "Infrastructure / Systems",
-
-    # Security
-    "Security Engineer": "Security",
-    "Security Analyst": "Security",
-
-    # Program/product/solutions
-    "Technical Program Manager (TPM)": "Program / Product",
-    "Program Manager": "Program / Product",
-    "Product Manager": "Program / Product",
-    "Solutions Engineer": "Program / Product",
-}
+# Canonical role taxonomy
+CANONICAL_ROLES: List[str] = []
+CANONICAL_TO_FAMILY: Dict[str, str] = {}
 
 # Import CSV datasource
 INPUT_CSV = "input_records.csv"
@@ -187,7 +127,6 @@ def cache_connect() -> sqlite3.Connection:
     return conn
 
 def cache_get(conn: sqlite3.Connection, term: str) -> Optional[Dict[str, Any]]:
-    print(f"[CACHE HIT] {term}") #temp test
     norm = normalize_term(term)
     cur = conn.execute("""
         SELECT result_json
@@ -235,7 +174,6 @@ def classify_field(
         }
 
     # 2) Call API (cache miss)
-    print(f"[CACHE MISS -> API] {field_text}") #temp test
     prompt = build_field_prompt(field_name, field_text)
 
     resp = client.messages.create(
@@ -487,6 +425,9 @@ def load_records_from_csv(path: str) -> List[Dict[str, str]]:
 # ------------------- Main -------------------
 def main() -> None:
     load_dotenv()
+    global CANONICAL_ROLES, CANONICAL_TO_FAMILY
+    CANONICAL_ROLES, CANONICAL_TO_FAMILY = load_taxonomy(TAXONOMY_CSV)
+
     conn = cache_connect()
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
