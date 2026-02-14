@@ -21,17 +21,15 @@ This system classifies free-form role titles into a controlled canonical taxonom
 ## Project Structure
 
 ```
-|-- role-taxonomy-ensemble/
-|-- README.md
-|-- requirements.txt
-|-- taxonomy_roles.csv
-|-- input_records.csv
-|
-|-- src/
-|   |-- role_taxonomy_ensemble.py
-|
-|-- experiments/
-|   |-- claude_test.py
+role-taxonomy-ensemble/
+├── README.md
+├── requirements.txt
+├── taxonomy_roles.csv
+├── input_records.csv
+├── src/
+│   └── role_taxonomy_ensemble.py
+└── experiments/
+    └── claude_test.py
 ```
 
 
