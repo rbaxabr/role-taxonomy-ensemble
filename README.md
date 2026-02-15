@@ -26,6 +26,8 @@ role-taxonomy-ensemble/
 ├── requirements.txt
 ├── taxonomy_roles.csv
 ├── input_records.csv
+├── .env.example
+├── LICENSE
 ├── src/
 │   └── role_taxonomy_ensemble.py
 └── experiments/
