@@ -6,6 +6,21 @@ This system classifies free-form role titles into a controlled canonical taxonom
 
 ---
 
+## Why This Exists
+
+Enterprise datasets often contain inconsistent, free-form role titles across multiple systems (e.g., role_title, job_title, vendor_role). This makes spend analytics, workforce reporting, and vendor rate governance extremely difficult.
+
+This project demonstrates a scalable approach to harmonizing messy role data into a controlled canonical taxonomy using:
+
+- Multi-field LLM classification
+- Hierarchical family-first scoring
+- Weighted ensemble aggregation
+- Versioned persistent caching for cost efficiency
+
+The result is a production-oriented, explainable role classification engine suitable for procurement, finance, or workforce analytics workflows.
+
+---
+
 ## Features
 
 - Multi-field classification (`role_title`, `job_title`, `vendor_role`)
